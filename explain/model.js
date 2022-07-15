@@ -52,32 +52,11 @@ export class Model {
 
         // inject the model_definition object into the model-engine
         this.worker.postMessage({
-          type: "inject_definition",
-          message: "",
+          command: "init",
           payload: this.model,
         });
       }
     }
-  }
-
-  modelEngineMessage(mes) {
-    console.log(mes);
-  }
-
-  modelEngineError(err) {
-    console.log(`Modelengine error: ${err}`);
-  }
-
-  modelEngineExit(code) {
-    console.log(`Modelengine exit code: ${code}`);
-  }
-
-  sendMessageToModelEngine(type, message, payload) {
-    this.worker.postMessage({
-      type: type,
-      message: message,
-      payload: payload,
-    });
   }
 
   loadModelDefinitionFromDisk(filename) {
@@ -116,7 +95,7 @@ export class Model {
       // we now have the type and the properties so first instantiate the correct model type
       let newComponent = {};
       if (comp_type in this.available_models) {
-        newComponent = new this.available_models[comp_type]();
+        newComponent = new this.available_models[comp_type](parsedModel);
       } else {
         errorMessage = `Model initializing error: ${comp_type} model not found.`;
         parsing_error = true;
@@ -141,5 +120,36 @@ export class Model {
     } else {
       return parsedModel;
     }
+  }
+
+  modelEngineMessage(mes) {
+    switch (mes.type) {
+      case "status":
+        this.statusMessage(mes.message);
+        break;
+      case "data":
+        this.dataMessage(mes.payload);
+    }
+  }
+
+  dataMessage(payload) {
+    console.log(payload);
+  }
+
+  statusMessage(status) {
+    switch (status) {
+      case "model ready":
+        this.initialized = true;
+        console.log("MODEL: Model and modelengine are running.");
+        break;
+    }
+  }
+
+  modelEngineError(err) {
+    console.log(`Modelengine error: ${err}`);
+  }
+
+  modelEngineExit(code) {
+    console.log(`Modelengine exit code: ${code}`);
   }
 }
