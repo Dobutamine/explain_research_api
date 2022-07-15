@@ -1,0 +1,15 @@
+{
+  "name": "explain_research_api",
+  "version": "1.0.0",
+  "description": "explain research api",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tim Antonius",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  }
+}
