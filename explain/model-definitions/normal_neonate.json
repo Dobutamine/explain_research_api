@@ -941,7 +941,7 @@
     "GASEX_LL": {
       "name": "GASEX_LL",
       "description": "gasexchanger blood-gas left lung",
-      "model_type": "Gasexchanger",
+      "model_type": "GasExchanger",
       "comp_blood": "LL",
       "comp_gas": "ALL",
       "is_enabled": true,
@@ -953,7 +953,7 @@
     "GASEX_LR": {
       "name": "GASEX_LR",
       "description": "gasexchanger blood-gas right lung",
-      "model_type": "Gasexchanger",
+      "model_type": "GasExchanger",
       "comp_blood": "RL",
       "comp_gas": "ALR",
       "is_enabled": true,
