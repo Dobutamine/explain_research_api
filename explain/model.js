@@ -1,5 +1,6 @@
 import { Worker } from "worker_threads";
 import { readFileSync } from "fs";
+import { EventEmitter } from "events";
 import path from "path";
 import * as models from "./core-models/index.js";
 
@@ -9,9 +10,10 @@ export class Model {
   model = {};
   worker;
   id = 0;
-  port = 3000;
+  events;
 
-  constructor(model_filename = "normal_neonate", port = 3000) {
+  // constructor and initialization routines
+  constructor(model_filename = "normal_neonate") {
     // generate an id for this model
     this.id = Math.floor(Math.random() * 1000000);
 
@@ -26,7 +28,6 @@ export class Model {
     // initialize the model engine
     this.initializeModelEngine(model_definition);
   }
-
   initializeModelEngine(model_definition) {
     // parse the model definition file
     if (model_definition) {
@@ -50,6 +51,9 @@ export class Model {
           this.modelEngineExit(code);
         });
 
+        // instantiate an event emitter
+        this.events = new EventEmitter();
+
         // inject the model_definition object into the model-engine
         this.worker.postMessage({
           command: "init",
@@ -58,7 +62,6 @@ export class Model {
       }
     }
   }
-
   loadModelDefinitionFromDisk(filename) {
     // construct the correct filename by adding to extension and path
     const abs_path = path.resolve(
@@ -72,7 +75,6 @@ export class Model {
     });
     return JSON.parse(model_def);
   }
-
   parseModelDefinition(model_definition) {
     let parsedModel = {};
     // parse the main properties
@@ -122,6 +124,7 @@ export class Model {
     }
   }
 
+  // modelengine messages
   modelEngineMessage(mes) {
     switch (mes.type) {
       case "status":
@@ -131,25 +134,73 @@ export class Model {
         this.dataMessage(mes.payload);
     }
   }
-
   dataMessage(payload) {
     console.log(payload);
   }
-
   statusMessage(status) {
     switch (status) {
       case "model ready":
         this.initialized = true;
         console.log("MODEL: Model and modelengine are running.");
+        // generate an event
+        this.events.emit("ready", this.id);
         break;
     }
   }
-
   modelEngineError(err) {
     console.log(`Modelengine error: ${err}`);
   }
-
   modelEngineExit(code) {
     console.log(`Modelengine exit code: ${code}`);
+  }
+
+  // modelengine commands
+  calculate(timeToCalculate) {
+    if (this.initialized) {
+      this.worker.postMessage({
+        command: "calculate",
+        payload: timeToCalculate,
+      });
+    }
+  }
+  start() {
+    if (this.initialized) {
+      this.worker.postMessage({
+        command: "start",
+        payload: {},
+      });
+    }
+  }
+  stop() {
+    if (this.initialized) {
+      this.worker.postMessage({
+        command: "stop",
+        payload: {},
+      });
+    }
+  }
+  reset() {
+    if (this.initialized) {
+      this.worker.postMessage({
+        command: "reset",
+        payload: {},
+      });
+    }
+  }
+  setModelProperties(props) {
+    if (this.initialized) {
+      this.worker.postMessage({
+        command: "set_props",
+        payload: props,
+      });
+    }
+  }
+  setDatacollector(dc_config) {
+    if (this.initialized) {
+      this.worker.postMessage({
+        command: "set_dc",
+        payload: dc_config,
+      });
+    }
   }
 }
