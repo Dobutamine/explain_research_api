@@ -4,6 +4,11 @@ import { WebSocketServer } from "ws";
 import { readFileSync } from "fs";
 import express from "express";
 
+// create a dictionary holding all the clients
+// clients = { id: 1000, model: model instance, socket: websocket }
+
+let clients = {};
+
 // create an express application
 const app = express();
 
@@ -14,25 +19,27 @@ const server = createServer(
     cert: readFileSync("./api/cert.pem"),
   },
   app
-).listen(3000);
+).listen(80);
 
-// handle the upgrade request for a websocket connection
-server.on("upgrade", (request, socket, head) => {
-  wsServer.handleUpgrade(request, socket, head, (socket) => {
-    wsServer.emit("connection", socket, request);
+// when a request comes in on the https server an id is generated which is needed for the websocket connection
+// when this id a new model instance is created
+
+// create an array of websockets
+let wsSockets = [];
+
+const wsServer = new WebSocketServer({ port: 8080 });
+wsServer.on("connection", function (socket) {
+  wsSockets.push(socket);
+
+  socket.on("message", function (msg) {
+    console.log(msg);
   });
-});
 
-// set up a headless websocket server
-const wsServer = new WebSocketServer({ noServer: true });
-
-// handle events on the websocket server
-wsServer.on("connection", (client) => {
-  client.on("message", (data) => {
-    console.log(JSON.parse(data));
+  socket.on("close", () => {
+    wsSockets = wsSockets.filter((s) => s !== socket);
   });
 });
 
 // instantiate a new model
-const model = new Model();
+const model = new Model("normal_neonate");
 model.events.on("ready", (id) => console.log(id));

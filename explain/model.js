@@ -8,14 +8,14 @@ export class Model {
   initialized = false;
   available_models = {};
   model = {};
+  id = 1000;
   worker;
-  id = 0;
   events;
 
   // constructor and initialization routines
-  constructor(model_filename = "normal_neonate") {
-    // generate an id for this model
-    this.id = Math.floor(Math.random() * 1000000);
+  constructor(model_filename = "normal_neonate", id = 1000) {
+    // store the id
+    this.id = id;
 
     // build a available model list
     for (const [key, value] of Object.entries(models)) {
